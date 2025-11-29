@@ -564,8 +564,15 @@ class MiniMaxTTSEventHandler(BaseEventHandler):
             # 移除标志
             _tts_pending_chats.discard(stream_id)
 
-            # 保存原始完整文本
+            # 保存原始完整文本并清理
             text = message.llm_response_content.strip()
+
+            # 清理不需要朗读的内容
+            # 移除【】括号及其内容（如【request_voice_reply】）
+            text = re.sub(r'【[^】]*】', '', text)
+            # 移除多余的空白字符
+            text = re.sub(r'\s+', ' ', text).strip()
+
             voice_id = self.get_config("minimax.voice_id", "")
 
             if not text:
