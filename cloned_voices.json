@@ -1,0 +1,29 @@
+{
+  "anju0001": {
+    "voice_id": "anju0001",
+    "audio_path": "/root/maimai/MaiBot/plugins/minimax_tts_plugin/voice_audios/main/audio.mp3",
+    "prompt_audio": null,
+    "prompt_text": null,
+    "created_at": "2025-11-28T23:42:44.086369",
+    "file_id": 339110035427757,
+    "prompt_audio_id": null
+  },
+  "anju0002": {
+    "voice_id": "anju0002",
+    "audio_path": "/root/maimai/MaiBot/plugins/minimax_tts_plugin/voice_audios/main/aanjuqwq.mp3",
+    "prompt_audio": null,
+    "prompt_text": null,
+    "created_at": "2025-11-29T10:43:54.394540",
+    "file_id": 339272957186411,
+    "prompt_audio_id": null
+  },
+  "anju0003": {
+    "voice_id": "anju0003",
+    "audio_path": "/root/maimai/MaiBot/plugins/minimax_tts_plugin/voice_audios/main/anjuqaq.mp3",
+    "prompt_audio": null,
+    "prompt_text": null,
+    "created_at": "2025-11-29T11:22:19.931271",
+    "file_id": 339283709370913,
+    "prompt_audio_id": null
+  }
+}
