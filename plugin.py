@@ -326,6 +326,9 @@ def call_minimax_api_sync(get_config_func, api_url: str, api_key: str, text: str
 
     async def _call_api():
         try:
+            # 处理文本（在函数开始处，避免作用域问题）
+            processed_text = text
+
             # 构建 voice_setting
             voice_setting = {
                 "voice_id": voice_id,
@@ -347,9 +350,17 @@ def call_minimax_api_sync(get_config_func, api_url: str, api_key: str, text: str
             if get_config_func("minimax.latex_read", False):
                 voice_setting["latex_read"] = True
 
+            # 自动在文本末尾添加停顿，防止语音被截断
+            trailing_pause = get_config_func("minimax.trailing_pause", 0.0)
+            if trailing_pause > 0:
+                # 确保停顿标记在有效文本之后，范围 [0.01, 99.99]
+                pause_duration = max(0.01, min(99.99, trailing_pause))
+                processed_text = f"{processed_text}<#{pause_duration:.2f}#>"
+                logger.debug(f"添加尾部停顿: {pause_duration}秒")
+
             request_data = {
                 "model": get_config_func("minimax.model", "speech-2.6-hd"),
-                "text": text,
+                "text": processed_text,
                 "stream": False,
                 "language_boost": get_config_func("minimax.language_boost", "auto"),
                 "output_format": get_config_func("minimax.output_format", "hex"),
@@ -1221,41 +1232,42 @@ class MiniMaxTTSPlugin(BasePlugin):
 
     config_schema = {
         "plugin": {
-            "enabled": ConfigField(type=bool, default=True, description="启用插件")
+            "enabled": ConfigField(type=bool, default=True, description="是否启用插件")
         },
         "components": {
-            "command_enabled": ConfigField(type=bool, default=True, description="启用Command"),
-            "tool_enabled": ConfigField(type=bool, default=True, description="启用Tool(用于标记TTS请求)"),
-            "handler_enabled": ConfigField(type=bool, default=True, description="启用EventHandler(用于执行TTS)"),
-            "voice_clone_enabled": ConfigField(type=bool, default=True, description="启用音色克隆命令"),
+            "command_enabled": ConfigField(type=bool, default=True, description="启用手动命令触发TTS (/minimax <文本>)"),
+            "tool_enabled": ConfigField(type=bool, default=True, description="启用LLM工具调用 (让AI自动判断何时使用语音回复)"),
+            "handler_enabled": ConfigField(type=bool, default=True, description="启用事件处理器 (执行实际的语音合成)"),
+            "voice_clone_enabled": ConfigField(type=bool, default=True, description="启用音色克隆命令 (/clone_voice等)"),
         },
         "minimax": {
-            "base_url": ConfigField(type=str, default="https://api.minimaxi.com/v1/t2a_v2", description="API地址"),
-            "api_key": ConfigField(type=str, default="", description="API Key"),
-            "model": ConfigField(type=str, default="speech-2.6-hd", description="模型"),
-            "voice_id": ConfigField(type=str, default="moss_audio_51758de9-c2ad-11f0-acdb-d238e4d54c00", description="音色ID"),
-            "timeout": ConfigField(type=int, default=30, description="超时时间(秒)"),
-            "language_boost": ConfigField(type=str, default="auto", description="语言增强"),
-            "output_format": ConfigField(type=str, default="hex", description="输出格式(hex/url)"),
-            "emotion": ConfigField(type=str, default="", description="情绪(happy/sad/angry/fearful/disgusted/surprised/calm/fluent)"),
-            "text_normalization": ConfigField(type=bool, default=False, description="启用文本规范化(提升数字朗读)"),
-            "latex_read": ConfigField(type=bool, default=False, description="启用LaTeX公式朗读"),
-            "speed": ConfigField(type=float, default=1.0, description="语速(0.5-2.0)"),
-            "vol": ConfigField(type=float, default=1.0, description="音量(0-10)"),
-            "pitch": ConfigField(type=int, default=0, description="音高(-12到12)"),
-            "voice_modify_pitch": ConfigField(type=int, default=0, description="效果器-音高调整(-100到100,负值更低沉)"),
-            "voice_modify_intensity": ConfigField(type=int, default=0, description="效果器-强度调整(-100到100,负值更刚劲)"),
-            "voice_modify_timbre": ConfigField(type=int, default=0, description="效果器-音色调整(-100到100,负值更浑厚)"),
-            "sound_effects": ConfigField(type=str, default="", description="音效(spacious_echo/auditorium_echo/lofi_telephone/robotic)"),
-            "sample_rate": ConfigField(type=int, default=32000, description="采样率"),
-            "bitrate": ConfigField(type=int, default=128000, description="比特率"),
-            "audio_format": ConfigField(type=str, default="mp3", description="音频格式"),
-            "channel": ConfigField(type=int, default=1, description="声道数")
+            "base_url": ConfigField(type=str, default="https://api.minimaxi.com/v1/t2a_v2", description="MiniMax TTS API地址 (通常无需修改)"),
+            "api_key": ConfigField(type=str, default="", description="API密钥 (在 https://platform.minimaxi.com 获取)"),
+            "model": ConfigField(type=str, default="speech-2.6-hd", description="TTS模型 | 可选: speech-2.6-hd(高清), speech-2.6-turbo(快速)"),
+            "voice_id": ConfigField(type=str, default="", description="默认音色ID | 支持系统音色/克隆音色/AI生成音色"),
+            "timeout": ConfigField(type=int, default=30, description="API请求超时时间(秒) | 长文本可适当增加"),
+            "language_boost": ConfigField(type=str, default="auto", description="语言增强 | 可选: auto(自动), Chinese(中文), English(英语), Japanese(日语)等"),
+            "output_format": ConfigField(type=str, default="hex", description="输出格式 | hex: 直接返回音频数据, url: 返回24小时有效URL"),
+            "emotion": ConfigField(type=str, default="", description="语音情绪 | 可选: happy(快乐), sad(悲伤), angry(愤怒), calm(平静), fluent(流畅) | 留空自动"),
+            "text_normalization": ConfigField(type=bool, default=False, description="文本规范化 | 开启后优化数字、日期等朗读效果 (略增延迟)"),
+            "latex_read": ConfigField(type=bool, default=False, description="LaTeX公式朗读 | 开启后支持朗读数学公式 (需用$包裹公式)"),
+            "trailing_pause": ConfigField(type=float, default=1.0, description="尾部停顿(秒) | 防止最后一个字被截断 | 范围: 0-99.99, 推荐: 0.5-2.0"),
+            "speed": ConfigField(type=float, default=1.0, description="语速 | 范围: 0.5(慢)-2.0(快), 1.0为正常速度"),
+            "vol": ConfigField(type=float, default=1.0, description="音量 | 范围: 0.1(小)-10.0(大), 1.0为正常音量"),
+            "pitch": ConfigField(type=int, default=0, description="音调 | 范围: -12(低沉)~12(尖锐), 0为原始音调"),
+            "voice_modify_pitch": ConfigField(type=int, default=0, description="[效果器]音高微调 | 范围: -100(深沉)~100(明亮), 比pitch更细腻"),
+            "voice_modify_intensity": ConfigField(type=int, default=0, description="[效果器]声音强度 | 范围: -100(柔和)~100(刚劲)"),
+            "voice_modify_timbre": ConfigField(type=int, default=0, description="[效果器]音色调整 | 范围: -100(浑厚)~100(清脆)"),
+            "sound_effects": ConfigField(type=str, default="", description="音效 | 可选: spacious_echo(空旷回声), auditorium_echo(礼堂回声), lofi_telephone(电话音), robotic(机器人)"),
+            "sample_rate": ConfigField(type=int, default=32000, description="采样率(Hz) | 可选: 8000/16000/32000/44100, 越高音质越好 | 推荐: 44100"),
+            "bitrate": ConfigField(type=int, default=128000, description="比特率(bps) | 可选: 32000/64000/128000/256000, 越高音质越好 | 推荐: 256000"),
+            "audio_format": ConfigField(type=str, default="mp3", description="音频格式 | 可选: mp3(兼容性好), wav(无损), flac(无损压缩), pcm(原始)"),
+            "channel": ConfigField(type=int, default=1, description="声道数 | 1: 单声道(推荐TTS), 2: 立体声")
         },
         "voice_clone": {
-            "test_text": ConfigField(type=str, default="你好，这是音色克隆测试。", description="克隆时的试听文本"),
-            "need_noise_reduction": ConfigField(type=bool, default=False, description="是否启用降噪"),
-            "need_volume_normalization": ConfigField(type=bool, default=False, description="是否启用音量归一化")
+            "test_text": ConfigField(type=str, default="你好，这是音色克隆测试。", description="克隆音色时的试听文本 (会自动生成试听音频)"),
+            "need_noise_reduction": ConfigField(type=bool, default=False, description="克隆时启用降噪 | 源音频有背景噪音时建议开启"),
+            "need_volume_normalization": ConfigField(type=bool, default=False, description="克隆时启用音量归一化 | 源音频音量不稳定时建议开启")
         }
     }
 
