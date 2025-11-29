@@ -7,6 +7,10 @@ __pycache__/
 
 # 配置文件
 config.toml
+cloned_voices.json
+
+# 音频文件夹
+voice_audios/
 
 # 日志文件
 *.log
