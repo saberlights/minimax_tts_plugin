@@ -25,6 +25,7 @@ from .components.clone_commands import (
     set_voice_clone_manager as set_clone_vcm,
 )
 from .components.voice_always_command import VoiceAlwaysCommand
+from .components.help_command import HelpCommand
 
 # 共享的 VoiceCloneManager 实例
 _voice_clone_manager = VoiceCloneManager()
@@ -61,6 +62,7 @@ class MiniMaxTTSPlugin(BasePlugin):
         if command_enabled:
             components.append((MiniMaxTTSCommand.get_command_info(), MiniMaxTTSCommand))
             components.append((VoiceAlwaysCommand.get_command_info(), VoiceAlwaysCommand))
+            components.append((HelpCommand.get_command_info(), HelpCommand))
         if tool_enabled:
             components.append((MiniMaxTTSTool.get_tool_info(), MiniMaxTTSTool))
         if handler_enabled:
