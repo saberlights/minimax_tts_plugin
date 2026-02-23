@@ -24,6 +24,9 @@ cloned_voices.json
 *.flac
 minimax_tts_output.*
 
+# 音频缓存目录
+.audio_cache/
+
 # IDE
 .vscode/
 .idea/
