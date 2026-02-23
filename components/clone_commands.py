@@ -405,7 +405,7 @@ class CloneVoiceBatchCommand(BaseCommand):
 
     command_name = "clone_voice_batch"
     command_description = "批量克隆多个音频文件"
-    command_pattern = r"^/clone_voice_batch\s+(.+)$"
+    command_pattern = r"^/clone_voice_batch\s+(?P<files>.+)$"
     command_help = """用法：/clone_voice_batch <音频1> <音频2> [音频3] ...
 
 示例：
@@ -425,7 +425,7 @@ class CloneVoiceBatchCommand(BaseCommand):
         try:
             mgr = _get_manager()
 
-            audio_files_str = self.matched_groups.get("__match__", "").strip()
+            audio_files_str = self.matched_groups.get("files", "").strip()
             if not audio_files_str:
                 audio_files_str = self.message.raw_message.replace("/clone_voice_batch", "").strip()
 
