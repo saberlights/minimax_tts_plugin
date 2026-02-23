@@ -18,14 +18,14 @@ HELP_TEXT = """MiniMax TTS 插件 - 命令列表
                            批量克隆音色
 
 音色管理：
-  /list_voices             查看已克隆音色（含过期预警）
+  /list_voices             查看已克隆音色
   /list_audio              查看可用音频文件
   /test_voice <ID> <文本>  试听指定音色
   /delete_voice <ID>       删除音色（本地+服务端）
 
 提示：
   - 在国际版 (hailuo.ai) 新用户可免费克隆音色
-  - 克隆音色有 7 天有效期，请注意续期
+  - 克隆音色需在 7 天内使用一次 TTS 合成来永久保留
   - 发送含"语音"等关键词的消息可让 AI 自动语音回复"""
 
 

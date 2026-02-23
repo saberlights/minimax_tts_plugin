@@ -1,4 +1,4 @@
-"""音色克隆管理器：上传、克隆、删除、过期检测"""
+"""音色克隆管理器：上传、克隆、删除、激活检测"""
 
 import asyncio
 import json
@@ -96,25 +96,28 @@ class VoiceCloneManager:
                 voices[voice_id]["last_used_at"] = datetime.now().isoformat()
                 await self._save()
 
-    async def check_expired_voices(self, warn_days: int = 6) -> List[str]:
-        """检测即将过期的音色（MiniMax 克隆音色 7 天有效期）"""
+    async def check_unactivated_voices(self, warn_days: int = 6) -> List[str]:
+        """检测克隆后尚未通过 TTS 调用激活的音色（7天内未使用将被删除）"""
         async with self._lock:
             voices = await self._load()
-            expired = []
+            unactivated = []
             cutoff = datetime.now() - timedelta(days=warn_days)
 
             for voice_id, info in voices.items():
+                # 已经使用过的音色（有 last_used_at）已永久保留，无需预警
+                if info.get("last_used_at"):
+                    continue
                 created_at_str = info.get("created_at", "")
                 if not created_at_str:
                     continue
                 try:
                     created_at = datetime.fromisoformat(created_at_str)
                     if created_at < cutoff:
-                        expired.append(voice_id)
+                        unactivated.append(voice_id)
                 except (ValueError, TypeError):
                     pass
 
-            return expired
+            return unactivated
 
     # ── 上传音频 ────────────────────────────────────────
 

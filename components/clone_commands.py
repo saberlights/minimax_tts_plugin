@@ -220,10 +220,10 @@ class ListVoicesCommand(BaseCommand):
 
                 msg += "\n"
 
-            # 检查即将过期的音色
-            expired = await mgr.check_expired_voices()
-            if expired:
-                msg += f"[注意] 以下音色即将过期（超过6天）：{', '.join(expired)}\n\n"
+            # 检查尚未激活的音色
+            unactivated = await mgr.check_unactivated_voices()
+            if unactivated:
+                msg += f"[注意] 以下音色克隆后尚未使用，7天内未调用将被删除：{', '.join(unactivated)}\n\n"
 
             msg += "使用 /test_voice <音色ID> <文本> 测试音色\n"
             msg += "使用 /delete_voice <音色ID> 删除音色"

@@ -111,13 +111,13 @@ voice_audios/
 ### 音色管理
 
 ```bash
-/list_voices              # 查看所有已克隆音色（含过期预警）
+/list_voices              # 查看所有已克隆音色
 /list_audio               # 查看可用音频文件
 /test_voice MyVoice001 测试文本   # 测试音色效果
 /delete_voice MyVoice001  # 删除音色（本地+服务端）
 ```
 
-> **注意**: MiniMax 克隆音色有 7 天有效期。`/list_voices` 会自动提醒即将过期的音色（超过 6 天）。
+> **注意**: 克隆出的音色为临时音色，需在 7 天内通过 TTS 合成接口调用一次才能永久保留。未在 7 天内使用的音色将被自动删除。`/list_voices` 会提醒尚未激活的音色。
 
 ## 配置详解
 
