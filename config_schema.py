@@ -60,7 +60,7 @@ CONFIG_SCHEMA = {
         ),
         "group_id": ConfigField(
             type=str, default="",
-            description="MiniMax Group ID (在控制台获取，用于 API 鉴权)",
+            description="MiniMax Group ID (可选，留空即可，部分旧接口可能需要)",
         ),
         "model": ConfigField(
             type=str, default="speech-2.8-hd",

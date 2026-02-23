@@ -25,16 +25,15 @@
 
 1. 访问 [MiniMax 控制台](https://platform.minimaxi.com/user-center/basic-information/interface-key)
 2. 注册/登录账号
-3. 创建 API Key 并记下 Group ID
+3. 创建 API Key
 
 ### 2. 配置插件
 
-编辑 `config.toml`，填写 API Key 和 Group ID：
+编辑 `config.toml`，填写 API Key：
 
 ```toml
 [minimax]
 api_key = "your_api_key_here"
-group_id = "your_group_id_here"
 voice_id = "your_voice_id"
 ```
 
@@ -67,9 +66,21 @@ random_voice_probability = 0.3   # 30% 的概率使用语音回复
 
 ## 音色克隆
 
-> **省钱技巧**: 在 MiniMax 国际版 (https://www.hailuo.ai) 可以免费克隆音色，克隆后的音色 ID 可直接在国内版 API 使用。同时国内版 (https://platform.minimaxi.com) 新用户可领取 15 元免费额度用于语音合成调用。建议先在国际版免费完成音色克隆，再用国内版额度进行日常 TTS 合成。
+有两种方式克隆自定义音色：
 
-### 准备音频文件
+### 方式一：国际版免费克隆（推荐）
+
+1. 访问 [MiniMax 国际版](https://www.hailuo.ai)，新用户可**免费**克隆音色
+2. 在网页端上传音频完成克隆，获得音色 ID
+3. 克隆后的音色 ID 可直接在国内版 API 使用，无需额外操作
+
+> 国内版 (https://platform.minimaxi.com) 新用户可领取 15 元免费额度用于语音合成调用。建议先在国际版免费完成音色克隆，再用国内版额度进行日常 TTS 合成。
+
+### 方式二：命令克隆（付费）
+
+通过插件命令调用 MiniMax API 克隆音色，**每次克隆消耗 9.9 元**。
+
+#### 准备音频文件
 
 将音频文件放到 `voice_audios` 目录：
 
@@ -80,7 +91,7 @@ voice_audios/
 └── temp/      # 临时文件
 ```
 
-### 克隆命令
+#### 克隆命令
 
 **单个克隆：**
 ```bash
