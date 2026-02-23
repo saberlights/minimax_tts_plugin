@@ -48,19 +48,17 @@ class MiniMaxTTSEventHandler(BaseEventHandler):
 
             # ── 判断是否需要 TTS ──
             should_tts = False
-            pending_emotion = None
 
             # 1. 常驻语音模式（最高优先级）
             if await is_always_voice(stream_id):
                 should_tts = True
-                # 常驻模式下也消费 LLM 标记的情绪（如果有）
-                was_pending, pending_emotion = await consume_tts_pending(stream_id)
+                # 常驻模式下也消费 LLM 标记（避免下次重复触发）
+                await consume_tts_pending(stream_id)
                 logger.debug(f"[EventHandler] 常驻语音模式触发: {stream_id}")
 
             # 2. LLM 工具标记
             if not should_tts:
-                was_pending, pending_emotion = await consume_tts_pending(stream_id)
-                if was_pending:
+                if await consume_tts_pending(stream_id):
                     should_tts = True
 
             # 3. 概率随机触发
@@ -94,13 +92,10 @@ class MiniMaxTTSEventHandler(BaseEventHandler):
 
             logger.info(f"[EventHandler] 语音合成完整回复: {text[:50]}...")
 
-            # ── 情绪决策：LLM 指定 > 配置默认值 > MiniMax 内置自动推断 ──
-            # 不传 emotion 参数时 MiniMax 模型会自动根据文本选择最自然的情绪
-            final_emotion = pending_emotion
-
+            # ── 情绪完全交给 MiniMax 模型自动推断 ──
             client = await MiniMaxAPIClient.get_instance()
             audio_path = await client.auto_synthesize(
-                self.get_config, text, voice_id, override_emotion=final_emotion
+                self.get_config, text, voice_id
             )
 
             if audio_path and stream_id:

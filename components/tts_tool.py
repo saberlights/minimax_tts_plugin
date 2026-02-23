@@ -1,46 +1,33 @@
 """LLM 工具（request_voice_reply）—— 设置 TTS 标志"""
 
 import asyncio
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Set
 
 from src.common.logger import get_logger
 from src.plugin_system.base.base_tool import BaseTool
 from src.plugin_system.base.component_types import ToolParamType
-
-from ..core.config_schema import VALID_EMOTIONS
 
 logger = get_logger("minimax_tts_plugin")
 
 # 受 Lock 保护的全局状态
 _lock = asyncio.Lock()
 _tts_pending_chats: Set[str] = set()
-_tts_pending_emotions: Dict[str, str] = {}
 _tts_always_chats: Set[str] = set()  # 常驻语音模式的 chat
 
 
-async def mark_tts_pending(chat_id: str, emotion: Optional[str] = None) -> None:
+async def mark_tts_pending(chat_id: str) -> None:
     """标记某个 chat 需要 TTS"""
     async with _lock:
         _tts_pending_chats.add(chat_id)
-        if emotion and emotion in VALID_EMOTIONS:
-            _tts_pending_emotions[chat_id] = emotion
-        elif emotion is None or emotion not in VALID_EMOTIONS:
-            _tts_pending_emotions.pop(chat_id, None)
 
 
-async def consume_tts_pending(chat_id: str) -> Tuple[bool, Optional[str]]:
-    """消费 TTS 标志，返回 (是否已标记, 情绪)。
-
-    Returns:
-        (was_pending, emotion)
-        was_pending=False 表示未标记 TTS
-        was_pending=True 表示已消费，emotion 可能为 None
-    """
+async def consume_tts_pending(chat_id: str) -> bool:
+    """消费 TTS 标志，返回是否已标记。"""
     async with _lock:
         if chat_id not in _tts_pending_chats:
-            return False, None
+            return False
         _tts_pending_chats.discard(chat_id)
-        return True, _tts_pending_emotions.pop(chat_id, None)
+        return True
 
 
 async def is_tts_pending(chat_id: str) -> bool:
@@ -99,13 +86,6 @@ class MiniMaxTTSTool(BaseTool):
 
     parameters = [
         ("enable", ToolParamType.BOOLEAN, "是否启用语音回复，默认true", False, None),
-        (
-            "emotion",
-            ToolParamType.STRING,
-            "语音情绪（建议根据回复语气选择）。留空则使用配置默认。可选: happy/sad/angry/fearful/disgusted/surprised/calm/fluent/whisper",
-            False,
-            sorted(VALID_EMOTIONS),
-        ),
     ]
     available_for_llm = True
 
@@ -113,7 +93,6 @@ class MiniMaxTTSTool(BaseTool):
         """设置 TTS 标志，并根据 language_boost 配置指示语言"""
         try:
             enable = function_args.get("enable", True)
-            emotion = function_args.get("emotion", None)
 
             if not self.chat_stream:
                 return {
@@ -133,21 +112,14 @@ class MiniMaxTTSTool(BaseTool):
             if not enable:
                 async with _lock:
                     _tts_pending_chats.discard(chat_id)
-                    _tts_pending_emotions.pop(chat_id, None)
                 return {
                     "tool_name": "request_voice_reply",
                     "content": "已取消语音回复标记。",
                     "type": "tool_result",
                 }
 
-            # 标记 TTS
-            chosen_emotion = ""
-            if isinstance(emotion, str):
-                emotion = emotion.strip()
-                if emotion in VALID_EMOTIONS:
-                    chosen_emotion = emotion
-
-            await mark_tts_pending(chat_id, chosen_emotion if chosen_emotion else None)
+            # 标记 TTS（不传情绪，交给 MiniMax 模型自动推断）
+            await mark_tts_pending(chat_id)
 
             # 获取 language_boost 配置
             language_boost = self.get_config("minimax.language_boost", "auto")
@@ -168,10 +140,7 @@ class MiniMaxTTSTool(BaseTool):
                 target_language = language_map.get(language_boost, language_boost)
                 language_instruction = f"**必须使用{target_language}回复。**"
 
-            logger.info(
-                f"[Tool] 已标记 chat {chat_id} 需要 TTS，语言增强: {language_boost}"
-                + (f"，情绪: {chosen_emotion}" if chosen_emotion else "")
-            )
+            logger.info(f"[Tool] 已标记 chat {chat_id} 需要 TTS")
 
             content = (
                 "已标记需要语音回复，将在回复生成后合成语音。\n"
@@ -183,8 +152,6 @@ class MiniMaxTTSTool(BaseTool):
                 "- 不要使用 emoji、括号注释、【】标记等无法朗读的符号\n"
                 "- 不要分点列举或使用序号，用连贯的口语表达\n"
             )
-            if chosen_emotion:
-                content += f"\n情绪：{chosen_emotion}"
             if language_instruction:
                 content += f"\n{language_instruction}"
 
