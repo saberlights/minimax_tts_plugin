@@ -173,7 +173,16 @@ class MiniMaxTTSTool(BaseTool):
                 + (f"，情绪: {chosen_emotion}" if chosen_emotion else "")
             )
 
-            content = "已标记需要语音回复，将在回复生成后合成语音。"
+            content = (
+                "已标记需要语音回复，将在回复生成后合成语音。\n"
+                "**语音文本写作要求**：\n"
+                "- 用自然口语风格书写，像真人说话一样，避免书面化表达\n"
+                "- 在合适的地方插入拟声词来增加真人感，例如：\n"
+                "  (laughs) (chuckle) (sighs) (gasps) (humming) (coughs) (crying) (breath)\n"
+                "- 用语气词和停顿让节奏自然，如：嗯、啊、呢、吧、哦、嘿\n"
+                "- 不要使用 emoji、括号注释、【】标记等无法朗读的符号\n"
+                "- 不要分点列举或使用序号，用连贯的口语表达\n"
+            )
             if chosen_emotion:
                 content += f"\n情绪：{chosen_emotion}"
             if language_instruction:
