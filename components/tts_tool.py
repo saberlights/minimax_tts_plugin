@@ -7,7 +7,7 @@ from src.common.logger import get_logger
 from src.plugin_system.base.base_tool import BaseTool
 from src.plugin_system.base.component_types import ToolParamType
 
-from ..config_schema import VALID_EMOTIONS
+from ..core.config_schema import VALID_EMOTIONS
 
 logger = get_logger("minimax_tts_plugin")
 

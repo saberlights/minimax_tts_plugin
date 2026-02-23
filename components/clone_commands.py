@@ -8,9 +8,9 @@ from typing import Tuple
 from src.common.logger import get_logger
 from src.plugin_system.base.base_command import BaseCommand
 
-from ..api_client import MiniMaxAPIClient
-from ..audio_utils import format_file_size, list_audio_files, resolve_audio_path, VOICE_AUDIOS_DIR
-from ..voice_clone import VoiceCloneManager
+from ..core.api_client import MiniMaxAPIClient
+from ..core.audio_utils import format_file_size, list_audio_files, resolve_audio_path, VOICE_AUDIOS_DIR
+from ..core.voice_clone import VoiceCloneManager
 
 logger = get_logger("minimax_tts_plugin")
 

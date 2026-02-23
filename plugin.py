@@ -10,8 +10,8 @@ from typing import List, Tuple, Type
 from src.plugin_system.base.base_plugin import BasePlugin
 from src.plugin_system.apis.plugin_register_api import register_plugin
 
-from .config_schema import CONFIG_SCHEMA, CONFIG_SECTION_DESCRIPTIONS
-from .voice_clone import VoiceCloneManager
+from .core.config_schema import CONFIG_SCHEMA, CONFIG_SECTION_DESCRIPTIONS
+from .core.voice_clone import VoiceCloneManager
 from .components.tts_tool import MiniMaxTTSTool
 from .components.tts_handler import MiniMaxTTSEventHandler, set_voice_clone_manager as set_handler_vcm
 from .components.tts_command import MiniMaxTTSCommand

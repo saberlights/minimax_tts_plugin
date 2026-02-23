@@ -8,8 +8,8 @@ from src.common.logger import get_logger
 from src.plugin_system.base.base_events_handler import BaseEventHandler, EventType, MaiMessages
 from src.plugin_system.apis import send_api
 
-from ..api_client import MiniMaxAPIClient
-from ..voice_clone import VoiceCloneManager
+from ..core.api_client import MiniMaxAPIClient
+from ..core.voice_clone import VoiceCloneManager
 from .tts_tool import consume_tts_pending, is_always_voice
 
 logger = get_logger("minimax_tts_plugin")

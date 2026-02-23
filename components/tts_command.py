@@ -5,7 +5,7 @@ from typing import Tuple
 from src.common.logger import get_logger
 from src.plugin_system.base.base_command import BaseCommand
 
-from ..api_client import MiniMaxAPIClient
+from ..core.api_client import MiniMaxAPIClient
 
 logger = get_logger("minimax_tts_plugin")
 
