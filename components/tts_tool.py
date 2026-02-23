@@ -151,6 +151,7 @@ class MiniMaxTTSTool(BaseTool):
                 "  呼吸: (breath) (pant) (inhale) (exhale) (gasps)\n"
                 "  情绪: (sighs) (groans) (snorts) (humming)\n"
                 "  其他: (coughs) (clear-throat) (sniffs) (sneezes) (burps) (lip-smacking) (hissing) (emm)\n"
+                "- 在需要停顿的地方用 <#秒数#> 标记，如思考时 <#0.5#>、转折时 <#0.8#>、强调前 <#1.0#>\n"
                 "- 用语气词和停顿让节奏自然，如：嗯、啊、呢、吧、哦、嘿\n"
                 "- 不要使用 emoji、括号注释、【】标记等无法朗读的符号\n"
                 "- 不要分点列举或使用序号，用连贯的口语表达\n"
