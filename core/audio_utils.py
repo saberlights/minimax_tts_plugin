@@ -10,8 +10,8 @@ from src.common.logger import get_logger
 
 logger = get_logger("minimax_tts_plugin")
 
-# 目录常量
-PLUGIN_DIR = os.path.dirname(__file__)
+# 目录常量（上溯到插件根目录）
+PLUGIN_DIR = os.path.dirname(os.path.dirname(__file__))
 VOICE_AUDIOS_DIR = os.path.join(PLUGIN_DIR, "voice_audios")
 AUDIO_CACHE_DIR = os.path.join(PLUGIN_DIR, ".audio_cache")
 
